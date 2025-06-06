@@ -1,4 +1,3 @@
-
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
@@ -7,7 +6,7 @@ import google.generativeai as genai
 import json
 import pandas as pd
 
-genai.configure(api_key=st.secrets["AIzaSyBCwT-wdMTEQHWfu4LisbSnDdcLkQN0Z9Y"])
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def reverse_geocode_osm(lat, lon):
     url = "https://nominatim.openstreetmap.org/reverse"
@@ -30,7 +29,7 @@ def scrape_text(url):
 
 def extract_info_with_gemini(text):
     model = genai.GenerativeModel("gemini-pro")
-    prompt = f"""
+    prompt = f\"\"\"
 You are an assistant extracting townhouse complex data from real estate-related text.
 
 Given this page content, extract:
@@ -40,12 +39,12 @@ Given this page content, extract:
 - Number of levels (floors)
 
 Text:
-"""
+\"\"\"
 {text}
-"""
+\"\"\"
 
 Return a JSON object. Use null for any unknown field.
-"""
+\"\"\"
     try:
         response = model.generate_content(prompt)
         return json.loads(response.text)

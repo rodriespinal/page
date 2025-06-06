@@ -7,7 +7,7 @@ import google.generativeai as genai
 import json
 import pandas as pd
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+genai.configure(api_key=st.secrets["AIzaSyBCwT-wdMTEQHWfu4LisbSnDdcLkQN0Z9Y"])
 
 def reverse_geocode_osm(lat, lon):
     url = "https://nominatim.openstreetmap.org/reverse"

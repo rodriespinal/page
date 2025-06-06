@@ -29,7 +29,7 @@ def scrape_text(url):
 
 def extract_info_with_gemini(text):
     model = genai.GenerativeModel("gemini-pro")
-    prompt = f\"\"\"
+    prompt = f"""
 You are an assistant extracting townhouse complex data from real estate-related text.
 
 Given this page content, extract:
@@ -44,48 +44,10 @@ Text:
 \"\"\"
 
 Return a JSON object. Use null for any unknown field.
-\"\"\"
+"""
     try:
         response = model.generate_content(prompt)
         return json.loads(response.text)
     except Exception as e:
         print(f"Gemini error: {e}")
         return {}
-
-st.set_page_config(page_title="Townhouse Info Finder", page_icon="🏘️")
-st.title("🏘️ Townhouse Info Finder (Gemini Edition)")
-
-lat = st.number_input("Latitude", format="%.6f")
-lon = st.number_input("Longitude", format="%.6f")
-
-if st.button("Find Townhouse Info"):
-    with st.spinner("🔍 Reverse geocoding coordinates..."):
-        address = reverse_geocode_osm(lat, lon)
-    if not address:
-        st.error("Failed to reverse geocode address.")
-        st.stop()
-    st.success(f"Address: {address}")
-
-    with st.spinner("🧠 Searching Google..."):
-        links = get_google_links(address)
-    st.write("🔗 Top Google Results:")
-    for link in links:
-        st.markdown(f"- [{link}]({link})")
-
-    all_data = []
-    with st.spinner("⏳ Scraping & analyzing pages..."):
-        for link in links:
-            text = scrape_text(link)
-            result = extract_info_with_gemini(text)
-            if result:
-                result["source"] = link
-                all_data.append(result)
-
-    if all_data:
-        df = pd.DataFrame(all_data)
-        st.success("✅ Info extracted!")
-        st.dataframe(df)
-        csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download CSV", csv, "townhouse_info.csv", "text/csv")
-    else:
-        st.warning("❌ No data could be extracted from search results.")

@@ -7,7 +7,7 @@ import json
 import pandas as pd
 
 # === CONFIGURATION ===
-genai.configure(api_key=str.secrets["AIzaSyBCwT-wdMTEQHWfu4LisbSnDdcLkQN0Z9Y"])
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # === FUNCTIONS ===
 

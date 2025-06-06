@@ -5,6 +5,7 @@ from googlesearch import search
 import google.generativeai as genai
 import json
 import pandas as pd
+from playwright.sync_api import sync_playwright
 
 # === CONFIGURATION ===
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -23,10 +24,14 @@ def get_google_links(query, num_results=10):
 
 def scrape_text(url):
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        html = requests.get(url, headers=headers, timeout=10).text
-        soup = BeautifulSoup(html, "html.parser")
-        return soup.get_text(separator=' ', strip=True)[:10000]
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, timeout=20000)
+            page.wait_for_timeout(3000)
+            text = page.inner_text("body")
+            browser.close()
+            return text[:10000]
     except Exception as e:
         return f"Error scraping {url}: {e}"
 
@@ -58,7 +63,7 @@ Return a JSON object. Use null for any unknown field.
 # === STREAMLIT UI ===
 
 st.set_page_config(page_title="Townhouse Info Finder", page_icon="🏘️")
-st.title("🏘️ Townhouse Info Finder (Gemini Edition)")
+st.title("🏘️ Townhouse Info Finder (Gemini + Playwright Edition)")
 
 lat = st.number_input("Latitude", format="%.6f")
 lon = st.number_input("Longitude", format="%.6f")
@@ -90,6 +95,7 @@ if st.button("Find Townhouse Info"):
         df = pd.DataFrame(all_data)
         st.success("✅ Info extracted!")
         st.dataframe(df)
+        st.info(f"{len(df)} result(s) were successfully extracted and structured.")
         csv = df.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Download CSV", csv, "townhouse_info.csv", "text/csv")
     else:
